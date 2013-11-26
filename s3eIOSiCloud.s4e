@@ -43,17 +43,17 @@ functions:
  * Reading operations and conflicts will be notified via S3E_IOSICLOUD_CALLBACK_MERGE callback.
  * If iCloud isn't available on the device, S3E_RESULT_ERROR is returned.
  */
-s3eResult s3eIOSiCloudStart(const char* fileName, s3eBool supportConflictResolution) void run_on_os_thread
+s3eResult s3eIOSiCloudStart(const char* fileName, s3eBool supportConflictResolution) S3E_RESULT_ERROR run_on_os_thread
 
 /**
  * Stops iCloud servicing for a file for which s3eIOSiCloudStart was previously invoked
  */
-void s3eIOSiCloudStop() void run_on_os_thread
+void s3eIOSiCloudStop() run_on_os_thread
 
 /**
  * Tick function; must be called regularly to enable read/write operations retry
  */
-void s3eIOSiCloudTick() void run_on_os_thread
+void s3eIOSiCloudTick() run_on_os_thread
 
 /**
  * Starts writing out the data to file.

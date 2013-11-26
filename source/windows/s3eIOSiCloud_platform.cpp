@@ -75,7 +75,7 @@ void s3eIOSiCloudStop_platform()
 
 bool s3eIOSiCloud_LoadFile(const char* path, const void*& data, int& dataSize)
 {
-	s3eFile* f = s3eFileOpen(path, "rb");
+	s3eFile* f = s3eFileOpen(path, "rbU");
 	if (!f)
 	{
 		IwTrace(IOSICLOUD, ("File '%s' failed to open", path));
@@ -134,7 +134,7 @@ void s3eIOSiCloud_SimulateWrite()
 {
 	char path[256];
 	sprintf(path, "%s_icloud", doc.m_Name);
-	s3eFile* f = s3eFileOpen(path, "wb");
+	s3eFile* f = s3eFileOpen(path, "wbU");
 	if (!f)
 	{
 		s3eEdkFreeOS(doc.m_ToWriteData);
