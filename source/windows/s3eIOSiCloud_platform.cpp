@@ -10,7 +10,6 @@
 
 #include "IwDebug.h"
 #include "s3eEdk.h"
-#include "s3eFile.h"
 #include <vector>
 #include <algorithm>
 
@@ -75,7 +74,7 @@ void s3eIOSiCloudStop_platform()
 
 bool s3eIOSiCloud_LoadFile(const char* path, const void*& data, int& dataSize)
 {
-	s3eFile* f = s3eFileOpen(path, "rbU");
+	FILE* f = fopen(path, "rb");
 	if (!f)
 	{
 		IwTrace(IOSICLOUD, ("File '%s' failed to open", path));
@@ -84,27 +83,29 @@ bool s3eIOSiCloud_LoadFile(const char* path, const void*& data, int& dataSize)
 
 	// Get file size
 
-	dataSize = s3eFileGetSize(f);
+    fseek(f, 0L, SEEK_END);
+    dataSize = ftell(f);
+    fseek(f, 0L, SEEK_SET);
 
 	// Load file
 
 	void* _data = s3eEdkMallocOS(dataSize);
 	if (!_data)
 	{
-		s3eFileClose(f);
+		fclose(f);
 		return false;
 	}
 
-	if (s3eFileRead(_data, dataSize, 1, f) != 1)
+	if (fread(_data, dataSize, 1, f) != 1)
 	{
 		s3eEdkFreeOS(_data);
-		s3eFileClose(f);
+		fclose(f);
 		return false;
 	}
 
 	// Close file
 
-	s3eFileClose(f);
+	fclose(f);
 
 	data = _data;
 	return true;
@@ -134,7 +135,7 @@ void s3eIOSiCloud_SimulateWrite()
 {
 	char path[256];
 	sprintf(path, "%s_icloud", doc.m_Name);
-	s3eFile* f = s3eFileOpen(path, "wbU");
+	FILE* f = fopen(path, "wbU");
 	if (!f)
 	{
 		s3eEdkFreeOS(doc.m_ToWriteData);
@@ -142,15 +143,15 @@ void s3eIOSiCloud_SimulateWrite()
 		return;
 	}
 
-	if (s3eFileWrite(doc.m_ToWriteData, doc.m_ToWriteDataSize, 1, f) != 1)
+	if (fwrite(doc.m_ToWriteData, doc.m_ToWriteDataSize, 1, f) != 1)
 	{
-		s3eFileClose(f);
+		fclose(f);
 		s3eEdkFreeOS(doc.m_ToWriteData);
 		doc.m_WriteSucceeded = false;
 		return;
 	}
 
-	s3eFileClose(f);
+	fclose(f);
 	doc.m_WriteSucceeded = true;
 	s3eEdkFreeOS(doc.m_ToWriteData);
 }
