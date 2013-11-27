@@ -135,7 +135,7 @@ void s3eIOSiCloud_SimulateWrite()
 {
 	char path[256];
 	sprintf(path, "%s_icloud", doc.m_Name);
-	FILE* f = fopen(path, "wbU");
+	FILE* f = fopen(path, "wb");
 	if (!f)
 	{
 		s3eEdkFreeOS(doc.m_ToWriteData);
