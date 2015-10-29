@@ -13,3 +13,5 @@ example/data/Audio/*
 
 # Mac stuff
 .DS_Store
+
+stamp/
