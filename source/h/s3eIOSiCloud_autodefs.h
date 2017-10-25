@@ -11,4 +11,12 @@
 #define S3E_EXT_IOSICLOUD_NAME "s3eIOSiCloud"
 #define S3E_EXT_IOSICLOUD_HASH 0x47c24b3b
 
+#ifdef S3E_EXT_REGISTER
+#ifndef S3E_EXT_REGISTER_KEY
+#define S3E_EXT_REGISTER_KEY(name, num, key) S3E_EXT_REGISTER(name, num)
+#endif
+S3E_EXT_REGISTER("s3eIOSiCloud", 6)
+#else
+
+#endif /* S3E_EXT_REGISTER */
 #endif /* !S3EIOSICLOUD_AUTODEFS_H */

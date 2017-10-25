@@ -11,34 +11,17 @@
 #include "s3eIOSiCloud.h"
 
 
-// For MIPs (and WP8) platform we do not have asm code for stack switching 
-// implemented. So we make LoaderCallStart call manually to set GlobalLock
-#if defined __mips || defined S3E_ANDROID_X86 || (defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP))
-#define LOADER_CALL
+// Define S3E_EXT_SKIP_LOADER_CALL_LOCK on the user-side to skip LoaderCallStart/LoaderCallDone()-entry.
+// e.g. in s3eNUI this is used for generic user-side IwUI-based implementation.
+#ifndef S3E_EXT_SKIP_LOADER_CALL_LOCK
+#if (defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP)) || defined I3D_ARCH_NACLX86_64
+// For platforms missing stack-switching (WP8, NaCl, etc.) make loader-entry via LoaderCallStart/LoaderCallDone() on the user-side.
+#define LOADER_CALL_LOCK
+#endif
 #endif
 
-/**
- * Definitions for functions types passed to/from s3eExt interface
- */
-typedef  s3eResult(*s3eIOSiCloudRegister_t)(s3eIOSiCloudCallback cbid, s3eCallback fn, void* userData);
-typedef  s3eResult(*s3eIOSiCloudUnRegister_t)(s3eIOSiCloudCallback cbid, s3eCallback fn);
-typedef  s3eResult(*s3eIOSiCloudStart_t)(const char* fileName, s3eBool supportConflictResolution);
-typedef       void(*s3eIOSiCloudStop_t)();
-typedef       void(*s3eIOSiCloudTick_t)();
-typedef  s3eResult(*s3eIOSiCloudWrite_t)(const void* data, int32 dataSize);
 
-/**
- * struct that gets filled in by s3eIOSiCloudRegister
- */
-typedef struct s3eIOSiCloudFuncs
-{
-    s3eIOSiCloudRegister_t m_s3eIOSiCloudRegister;
-    s3eIOSiCloudUnRegister_t m_s3eIOSiCloudUnRegister;
-    s3eIOSiCloudStart_t m_s3eIOSiCloudStart;
-    s3eIOSiCloudStop_t m_s3eIOSiCloudStop;
-    s3eIOSiCloudTick_t m_s3eIOSiCloudTick;
-    s3eIOSiCloudWrite_t m_s3eIOSiCloudWrite;
-} s3eIOSiCloudFuncs;
+#include "s3eIOSiCloud_interface.h"
 
 static s3eIOSiCloudFuncs g_Ext;
 static bool g_GotExt = false;
@@ -54,7 +37,7 @@ static bool _extLoad()
             g_GotExt = true;
         else
             s3eDebugAssertShow(S3E_MESSAGE_CONTINUE_STOP_IGNORE,                 "error loading extension: s3eIOSiCloud");
-            
+
         g_TriedExt = true;
         g_TriedNoMsgExt = true;
     }
@@ -90,14 +73,14 @@ s3eResult s3eIOSiCloudRegister(s3eIOSiCloudCallback cbid, s3eCallback fn, void* 
     if (!_extLoad())
         return S3E_RESULT_ERROR;
 
-#ifdef LOADER_CALL
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eIOSiCloudRegister);
 #endif
 
     s3eResult ret = g_Ext.m_s3eIOSiCloudRegister(cbid, fn, userData);
 
-#ifdef LOADER_CALL
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eIOSiCloudRegister);
 #endif
 
     return ret;
@@ -110,14 +93,14 @@ s3eResult s3eIOSiCloudUnRegister(s3eIOSiCloudCallback cbid, s3eCallback fn)
     if (!_extLoad())
         return S3E_RESULT_ERROR;
 
-#ifdef LOADER_CALL
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eIOSiCloudUnRegister);
 #endif
 
     s3eResult ret = g_Ext.m_s3eIOSiCloudUnRegister(cbid, fn);
 
-#ifdef LOADER_CALL
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eIOSiCloudUnRegister);
 #endif
 
     return ret;
@@ -130,14 +113,14 @@ s3eResult s3eIOSiCloudStart(const char* fileName, s3eBool supportConflictResolut
     if (!_extLoad())
         return S3E_RESULT_ERROR;
 
-#ifdef LOADER_CALL
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eIOSiCloudStart);
 #endif
 
     s3eResult ret = g_Ext.m_s3eIOSiCloudStart(fileName, supportConflictResolution);
 
-#ifdef LOADER_CALL
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eIOSiCloudStart);
 #endif
 
     return ret;
@@ -150,14 +133,14 @@ void s3eIOSiCloudStop()
     if (!_extLoad())
         return;
 
-#ifdef LOADER_CALL
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eIOSiCloudStop);
 #endif
 
     g_Ext.m_s3eIOSiCloudStop();
 
-#ifdef LOADER_CALL
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eIOSiCloudStop);
 #endif
 
     return;
@@ -170,14 +153,14 @@ void s3eIOSiCloudTick()
     if (!_extLoad())
         return;
 
-#ifdef LOADER_CALL
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eIOSiCloudTick);
 #endif
 
     g_Ext.m_s3eIOSiCloudTick();
 
-#ifdef LOADER_CALL
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eIOSiCloudTick);
 #endif
 
     return;
@@ -190,14 +173,14 @@ s3eResult s3eIOSiCloudWrite(const void* data, int32 dataSize)
     if (!_extLoad())
         return S3E_RESULT_ERROR;
 
-#ifdef LOADER_CALL
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eIOSiCloudWrite);
 #endif
 
     s3eResult ret = g_Ext.m_s3eIOSiCloudWrite(data, dataSize);
 
-#ifdef LOADER_CALL
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eIOSiCloudWrite);
 #endif
 
     return ret;

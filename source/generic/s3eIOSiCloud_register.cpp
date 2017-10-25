@@ -22,36 +22,36 @@ extern void s3eIOSiCloudTerminate();
 // On platforms that use a seperate UI/OS thread we can autowrap functions
 // here.   Note that we can't use the S3E_USE_OS_THREAD define since this
 // code is oftern build standalone, outside the main loader build.
-#if defined I3D_OS_IPHONE || defined I3D_OS_OSX || defined I3D_OS_LINUX || defined I3D_OS_WINDOWS
+#if defined I3D_OS_IPHONE || defined I3D_OS_TVOS ||defined I3D_OS_OSX || defined I3D_OS_LINUX || defined I3D_OS_WINDOWS
 
 static s3eResult s3eIOSiCloudStart_wrap(const char* fileName, s3eBool supportConflictResolution)
 {
     IwTrace(IOSICLOUD_VERBOSE, ("calling s3eIOSiCloud func on main thread: s3eIOSiCloudStart"));
     return (s3eResult)(intptr_t)s3eEdkThreadRunOnOS((s3eEdkThreadFunc)s3eIOSiCloudStart, 2, fileName, supportConflictResolution);
 }
-
 static void s3eIOSiCloudStop_wrap()
 {
     IwTrace(IOSICLOUD_VERBOSE, ("calling s3eIOSiCloud func on main thread: s3eIOSiCloudStop"));
     s3eEdkThreadRunOnOS((s3eEdkThreadFunc)s3eIOSiCloudStop, 0);
 }
-
 static void s3eIOSiCloudTick_wrap()
 {
     IwTrace(IOSICLOUD_VERBOSE, ("calling s3eIOSiCloud func on main thread: s3eIOSiCloudTick"));
     s3eEdkThreadRunOnOS((s3eEdkThreadFunc)s3eIOSiCloudTick, 0);
 }
-
 static s3eResult s3eIOSiCloudWrite_wrap(const void* data, int32 dataSize)
 {
     IwTrace(IOSICLOUD_VERBOSE, ("calling s3eIOSiCloud func on main thread: s3eIOSiCloudWrite"));
     return (s3eResult)(intptr_t)s3eEdkThreadRunOnOS((s3eEdkThreadFunc)s3eIOSiCloudWrite, 2, data, dataSize);
 }
-
 #define s3eIOSiCloudStart s3eIOSiCloudStart_wrap
+
 #define s3eIOSiCloudStop s3eIOSiCloudStop_wrap
+
 #define s3eIOSiCloudTick s3eIOSiCloudTick_wrap
+
 #define s3eIOSiCloudWrite s3eIOSiCloudWrite_wrap
+
 
 #endif
 
@@ -84,7 +84,7 @@ void s3eIOSiCloudRegisterExt()
     /*
      * Register the extension
      */
-    s3eEdkRegister("s3eIOSiCloud", funcPtrs, sizeof(funcPtrs), flags, s3eIOSiCloudInit, s3eIOSiCloudTerminate, 0);
+s3eEdkRegister("s3eIOSiCloud", funcPtrs, sizeof(funcPtrs), flags, s3eIOSiCloudInit, s3eIOSiCloudTerminate, 0);
 }
 
 #if !defined S3E_BUILD_S3ELOADER

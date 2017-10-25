@@ -1,15 +1,6 @@
 build*
 *.mobileprovision
-Wwise/SDK/*
-!Wwise/SDK/README.md
-lib/*
-example/data/Audio/*
-!example/data/Audio/README.md
-
-# Wwise project stuff
-.cache
-*.validationcache
-*.wsettings
+stamp/
 
 # Mac stuff
 .DS_Store
